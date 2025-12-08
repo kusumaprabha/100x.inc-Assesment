@@ -295,11 +295,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             growth_areas: "The top 3 areas I'd like to grow in are:
              First, I want to deepen my expertise in LLMOps and scalable deployment of GenAI systems.
              Second, I’m focusing on advanced deep learning—especially transformer architectures and multimodal models.And
-             Third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.”
+             Third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.”,
 
 
             misconception: "People sometimes assume I’m quiet because I’m focused, but once I start working on a problem, I communicate very clearly and collaborate actively. 
-            I just like to understand the problem deeply before sharing solutions — and once I do, I’m very engaged and proactive.”
+            I just like to understand the problem deeply before sharing solutions — and once I do, I’m very engaged and proactive.”,
 
             push_boundaries: “I push my boundaries by taking on projects that challenge me technically. 
             For example, building a GenAI chatbot POC, designing a PySpark-based validation engine, and deploying APIs on AWS — all of these were outside my comfort zone initially, but I took them head-on. 
@@ -1206,6 +1206,7 @@ if __name__ == '__main__':
 
 # if __name__ == '__main__':
 #     main()
+
 
 
 
