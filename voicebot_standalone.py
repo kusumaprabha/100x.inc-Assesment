@@ -541,7 +541,7 @@ def main():
     st.markdown("""
     <div style="text-align: center; padding: 20px;">
         <h1 style="color: #667eea;">🎤 Personal Voice Bot - Interactive Demo</h1>
-        <p>This is a complete HTML application embedded in Streamlit. All functionality is preserved.</p>
+        
     </div>
     """, unsafe_allow_html=True)
     
@@ -1206,6 +1206,7 @@ if __name__ == '__main__':
 
 # if __name__ == '__main__':
 #     main()
+
 
 
 
