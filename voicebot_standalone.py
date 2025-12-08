@@ -1,6 +1,3 @@
-
-
-
 #!/usr/bin/env python3
 """
 Personal Voice Bot - Interactive Demo
@@ -1219,4 +1216,5 @@ if __name__ == '__main__':
 
 # if __name__ == '__main__':
 #     main()
+
 
