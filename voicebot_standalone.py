@@ -371,28 +371,60 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         function speak(text) {
-            if (synth.speaking) {
-                synth.cancel();
-            }
+    if (synth.speaking) {
+        synth.cancel();
+    }
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.95;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
-            
-            // Try to use a good quality voice
-            const voices = synth.getVoices();
-            const preferredVoice = voices.find(voice => 
-                voice.name.includes('Google') || 
-                voice.name.includes('Microsoft') ||
-                voice.lang.includes('en')
-            );
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
-            }
-
-            synth.speak(utterance);
-        }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.1;  // Slightly higher pitch for feminine tone
+    utterance.volume = 1.0;
+    
+    // Get available voices
+    const voices = synth.getVoices();
+    
+    // List of common female voice names across platforms
+    const femaleVoiceNames = [
+        'Microsoft Zira Desktop',  // Windows female
+        'Google UK English Female',
+        'Google US English Female',
+        'Samantha',  // macOS female
+        'Karen',     // Australian female
+        'Tessa',     // South African female
+        'Serena',    // Italian female
+        'Amelie',    // French Canadian female
+        'Google español de Estados Unidos',
+        'Microsoft Helena Desktop' // Spanish female
+    ];
+    
+    // Try to find a female voice
+    let femaleVoice = null;
+    for (const name of femaleVoiceNames) {
+        femaleVoice = voices.find(voice => voice.name.includes(name));
+        if (femaleVoice) break;
+    }
+    
+    // If no exact match, try partial matches
+    if (!femaleVoice) {
+        femaleVoice = voices.find(voice => 
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('zira') ||
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('karen')
+        );
+    }
+    
+    // If still no female voice, use first available English voice
+    if (!femaleVoice) {
+        femaleVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+    }
+    
+    if (femaleVoice) {
+        utterance.voice = femaleVoice;
+    }
+    
+    synth.speak(utterance);
+}
 
         function getResponse(question) {
             const q = question.toLowerCase();
