@@ -284,36 +284,27 @@ HTML_CONTENT = """<!DOCTYPE html>
     <script>
         // Personal responses database - CUSTOMIZE THESE TO YOUR OWN ANSWERS
         const RESPONSES = {
-            life_story: `I'm a software engineer passionate about building innovative solutions that make a real impact. 
-I started coding in high school when I discovered the magic of turning ideas into reality through code. 
-Since then, I've been on an incredible journey of continuous learning, working on everything from web applications to AI-powered tools. 
-What drives me is the intersection of technology and human experience—creating solutions that are not just functional, but truly delightful to use.`,
+            life_story: "Hi, I'm Kusuma,currently working as an Associate Data Scientist,passionate about building innovative solutions that make a real impact, where i build and deploy machine learning models, automate data pipelines, 
+            and work closely with cross-functional teams to translate business needs into data-driven solutions.I’ve also worked on GenAI projects/POC like chatbot development.
+            I've been on an incredible journey of continuous learning, working on everything from applications to AI-powered tools.
+            What drives me is the intersection of technology and human experience—creating solutions that are not just functional, but truly delightful to use.",
 
-            superpower: `My #1 superpower is pattern recognition and connecting dots across different domains. 
-I have this ability to quickly identify similarities between seemingly unrelated problems and apply creative solutions from one field to another. 
-Whether it's recognizing a design pattern from architecture that could solve a coding challenge, or applying game theory to user experience design, 
-I thrive on these cross-pollination moments. This skill helps me innovate and approach problems from unique angles that others might miss.`,
+            superpower: "My superpower is taking complex problems and breaking them into clear, logical, and automated solutions. 
+            Whether it’s building a GenAI chatbot, designing a data validation engine in PySpark, or optimizing deep learning models, 
+            I’m able to think end-to-end — from understanding the business goal to turning it into a working system.”,
 
-            growth_areas: `The top 3 areas I'd like to grow in are:
+            growth_areas: "The top 3 areas I'd like to grow in are:
+             First, I want to deepen my expertise in LLMOps and scalable deployment of GenAI systems.
+             Second, I’m focusing on advanced deep learning—especially transformer architectures and multimodal models.And
+             Third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.”
 
-1. Public Speaking and Presentation Skills - I want to become more effective at communicating complex technical concepts to diverse audiences, from engineers to non-technical stakeholders. Being able to inspire and educate through compelling presentations is crucial for leadership.
 
-2. System Design at Scale - I'm fascinated by the architecture behind applications that serve millions of users. Understanding distributed systems, microservices, caching strategies, and how to build resilient, scalable infrastructure is something I'm actively learning.
+            misconception: "People sometimes assume I’m quiet because I’m focused, but once I start working on a problem, I communicate very clearly and collaborate actively. 
+            I just like to understand the problem deeply before sharing solutions — and once I do, I’m very engaged and proactive.”
 
-3. Leadership and Mentoring - I want to develop my ability to lead high-performing teams, create psychological safety, and mentor junior developers. The best leaders elevate everyone around them, and that's the kind of impact I want to have.`,
-
-            misconception: `A common misconception people have about me is that I'm introverted and prefer working alone because I can focus deeply on technical problems. 
-While it's true that I enjoy deep focus time, I'm actually very collaborative and energized by brainstorming sessions and team problem-solving. 
-Some of my best ideas come from bouncing thoughts off others and building on each other's perspectives. 
-I believe the best solutions emerge from diverse teams working together, not from solo geniuses in isolation. 
-So while I can work independently, I genuinely love the energy and creativity that comes from great teamwork.`,
-
-            push_boundaries: `I push my boundaries by deliberately stepping into uncomfortable situations and embracing the learning that comes from struggle. 
-I follow what I call the 70-20-10 rule: spending 70% of my time on things I'm already good at, 20% stretching my skills on challenges just beyond my current abilities, and 10% on completely new territory that feels almost impossible.
-
-Practically, this means taking on projects outside my comfort zone, participating in hackathons where I have to learn new technologies under pressure, contributing to open source projects where I'm surrounded by developers more skilled than me, and actively seeking constructive feedback even when it's hard to hear.
-
-I also believe in "productive failure"—trying things that might not work, because that's where the real growth happens. Every failed experiment teaches me something valuable about what doesn't work, bringing me closer to what does.`
+            push_boundaries: “I push my boundaries by taking on projects that challenge me technically. 
+            For example, building a GenAI chatbot POC, designing a PySpark-based validation engine, and deploying APIs on AWS — all of these were outside my comfort zone initially, but I took them head-on. 
+            I constantly upskill myself, experiment with new tools, and set targets that force me to grow faster than the environment around me.”
         };
 
         let isListening = false;
@@ -577,7 +568,7 @@ def main():
         ### Browser Requirements:
         - Works best in Chrome, Edge, or Safari
         - Requires microphone permission for voice input
-        - Modern browser with Web Speech API support
+
         """)
 
 if __name__ == '__main__':
@@ -1216,5 +1207,6 @@ if __name__ == '__main__':
 
 # if __name__ == '__main__':
 #     main()
+
 
 
