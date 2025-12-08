@@ -377,50 +377,49 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95;
-    utterance.pitch = 1.1;  // Slightly higher pitch for feminine tone
+    utterance.pitch = 1.0;
     utterance.volume = 1.0;
+    utterance.lang = 'en-IN';  // Indian English
     
-    // Get available voices
     const voices = synth.getVoices();
     
-    // List of common female voice names across platforms
-    const femaleVoiceNames = [
-        'Microsoft Zira Desktop',  // Windows female
-        'Google UK English Female',
-        'Google US English Female',
-        'Samantha',  // macOS female
-        'Karen',     // Australian female
-        'Tessa',     // South African female
-        'Serena',    // Italian female
-        'Amelie',    // French Canadian female
-        'Google español de Estados Unidos',
-        'Microsoft Helena Desktop' // Spanish female
-    ];
+    // 1. Try Microsoft Kalpana (Best Indian English female voice on Windows)
+    let voice = voices.find(v => v.name.includes('Microsoft Kalpana Desktop'));
     
-    // Try to find a female voice
-    let femaleVoice = null;
-    for (const name of femaleVoiceNames) {
-        femaleVoice = voices.find(voice => voice.name.includes(name));
-        if (femaleVoice) break;
+    // 2. Try Microsoft Heera
+    if (!voice) {
+        voice = voices.find(v => v.name.includes('Microsoft Heera Desktop'));
     }
     
-    // If no exact match, try partial matches
-    if (!femaleVoice) {
-        femaleVoice = voices.find(voice => 
-            voice.name.toLowerCase().includes('female') ||
-            voice.name.toLowerCase().includes('zira') ||
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('karen')
+    // 3. Try any Indian English female
+    if (!voice) {
+        voice = voices.find(v => 
+            (v.name.includes('India') || v.name.includes('IN') || v.lang.includes('IN')) &&
+            (v.name.includes('Female') || v.name.toLowerCase().includes('female'))
         );
     }
     
-    // If still no female voice, use first available English voice
-    if (!femaleVoice) {
-        femaleVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+    // 4. Try Amazon Polly Raveena
+    if (!voice) {
+        voice = voices.find(v => v.name.includes('Raveena'));
     }
     
-    if (femaleVoice) {
-        utterance.voice = femaleVoice;
+    // 5. Fallback to any female voice
+    if (!voice) {
+        voice = voices.find(v => 
+            v.name.includes('Female') || 
+            v.name.includes('Samantha') || 
+            v.name.includes('Zira')
+        );
+    }
+    
+    // 6. Last resort: Any voice
+    if (!voice && voices.length > 0) {
+        voice = voices[0];
+    }
+    
+    if (voice) {
+        utterance.voice = voice;
     }
     
     synth.speak(utterance);
