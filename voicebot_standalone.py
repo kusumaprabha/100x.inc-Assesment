@@ -1,597 +1,537 @@
+
+########## PRESENT WORKING #########
 #!/usr/bin/env python3
 
 """
-Personal Voice Bot - Interactive Demo
+Streamlit Voice Bot – AI-Powered Personal Assistant 
 """
 
 import streamlit as st
+import requests
+import os
+import base64
+import io
+from gtts import gTTS
+from typing import Dict, List
+from streamlit_mic_recorder import mic_recorder
+import tempfile
 
-# COMPLETE HTML CONTENT - NO TRIMMING
-HTML_CONTENT = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Voice Bot - Interactive Demo</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+# =============================================================================
+# CONFIG
+# =============================================================================
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+GROQ_API_KEY = "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"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL_NAME = "llama-3.3-70b-versatile"
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 900px;
-            width: 100%;
-            overflow: hidden;
-        }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
 
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
+PERSONAL_INFO = {
+    "life_story": "Hi, I'm Kusuma, currently working as an Associate Data Scientist, passionate about building innovative solutions that make a real impact, where I build and deploy machine learning models, automate data pipelines, and work closely with cross-functional teams to translate business needs into data-driven solutions. I've also worked on GenAI projects/POC like chatbot development. I've been on an incredible journey of continuous learning, working on everything from applications to AI-powered tools. What drives me is the intersection of technology and human experience—creating solutions that are not just functional, but truly delightful to use.",
 
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
+    "superpower": "My superpower is taking complex problems and breaking them into clear, logical, and automated solutions. Whether it's building a GenAI chatbot, designing a data validation engine in PySpark, or optimizing deep learning models, I'm able to think end-to-end — from understanding the business goal to turning it into a working system.",
 
-        .chat-container {
-            height: 450px;
-            overflow-y: auto;
-            padding: 30px;
-            background: #f8f9fa;
-        }
+    "growth_areas": "The top 3 areas I'd like to grow in are: First, I want to deepen my expertise in LLMOps and scalable deployment of GenAI systems. Second, I'm focusing on advanced deep learning—especially transformer architectures and multimodal models. And third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.",
 
-        .message {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-            animation: fadeIn 0.3s;
-        }
+    "misconception": "People sometimes assume I'm quiet because I'm focused, but once I start working on a problem, I communicate very clearly and collaborate actively. I just like to understand the problem deeply before sharing solutions — and once I do, I'm very engaged and proactive.",
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .message-content {
-            max-width: 75%;
-            padding: 15px 20px;
-            border-radius: 15px;
-            line-height: 1.6;
-            white-space: pre-line;
-        }
-
-        .message.bot .message-content {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
-        }
-
-        .message.user .message-content {
-            background: #667eea;
-            color: white;
-        }
-
-        .input-container {
-            padding: 20px 30px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            gap: 15px;
-        }
-
-        #userInput {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        #userInput:focus {
-            border-color: #667eea;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-send {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-send:hover {
-            background: #5568d3;
-        }
-
-        .btn-voice {
-            background: #764ba2;
-            color: white;
-            width: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .btn-voice:hover {
-            background: #643a8a;
-        }
-
-        .btn-voice.listening {
-            background: #e74c3c;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .suggestions {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .suggestions h3 {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 1em;
-        }
-
-        .suggestion-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .chip {
-            padding: 10px 18px;
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #667eea;
-            transition: all 0.3s;
-        }
-
-        .chip:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .status {
-            text-align: center;
-            padding: 10px;
-            font-size: 14px;
-            color: #666;
-            min-height: 30px;
-        }
-
-        .typing-indicator {
-            display: none;
-            padding: 15px 20px;
-            background: white;
-            border-radius: 15px;
-            border-left: 4px solid #667eea;
-            width: fit-content;
-        }
-
-        .typing-indicator.active {
-            display: block;
-        }
-
-        .dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #667eea;
-            margin: 0 3px;
-            animation: typing 1.4s infinite;
-        }
-
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎤 Personal Voice Bot</h1>
-            <p>Ask me about my background, skills, and aspirations!</p>
-        </div>
-
-        <div class="chat-container" id="chatContainer">
-            <div class="message bot">
-                <div class="message-content">
-                    Hi! I'm your personal voice bot. You can ask me about my life story, superpowers, 
-                    growth areas, misconceptions people have about me, or how I push my boundaries. 
-                    Feel free to speak or type your questions!
-                </div>
-            </div>
-        </div>
-
-        <div class="suggestions">
-            <h3>💡 Try asking:</h3>
-            <div class="suggestion-chips">
-                <div class="chip" onclick="askQuestion('What should we know about your life story?')">📖 Life Story</div>
-                <div class="chip" onclick="askQuestion('What is your #1 superpower?')">⚡ Superpower</div>
-                <div class="chip" onclick="askQuestion('What are the top 3 areas you would like to grow in?')">🌱 Growth Areas</div>
-                <div class="chip" onclick="askQuestion('What misconception do your coworkers have about you?')">🤔 Misconceptions</div>
-                <div class="chip" onclick="askQuestion('How do you push your boundaries and limits?')">🚀 Push Boundaries</div>
-            </div>
-        </div>
-
-        <div class="input-container">
-            <input type="text" id="userInput" placeholder="Type your question or click the mic to speak..." 
-                   onkeypress="handleKeyPress(event)">
-            <button class="btn btn-voice" id="voiceBtn" onclick="toggleVoice()">🎤</button>
-            <button class="btn btn-send" onclick="sendMessage()">Send</button>
-        </div>
-
-        <div class="status" id="status"></div>
-    </div>
-
-    <script>
-        // Personal responses database - FIXED VERSION
-        const RESPONSES = {
-            life_story: `Hi, I'm Kusuma, currently working as an Associate Data Scientist, passionate about building innovative solutions that make a real impact, where I build and deploy machine learning models, automate data pipelines, and work closely with cross-functional teams to translate business needs into data-driven solutions. I've also worked on GenAI projects/POC like chatbot development. I've been on an incredible journey of continuous learning, working on everything from applications to AI-powered tools. What drives me is the intersection of technology and human experience—creating solutions that are not just functional, but truly delightful to use.`,
-
-            superpower: `My superpower is taking complex problems and breaking them into clear, logical, and automated solutions. Whether it's building a GenAI chatbot, designing a data validation engine in PySpark, or optimizing deep learning models, I'm able to think end-to-end — from understanding the business goal to turning it into a working system.`,
-
-            growth_areas: `The top 3 areas I'd like to grow in are: First, I want to deepen my expertise in LLMOps and scalable deployment of GenAI systems. Second, I'm focusing on advanced deep learning—especially transformer architectures and multimodal models. And third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.`,
-
-            misconception: `People sometimes assume I'm quiet because I'm focused, but once I start working on a problem, I communicate very clearly and collaborate actively. I just like to understand the problem deeply before sharing solutions — and once I do, I'm very engaged and proactive.`,
-
-            push_boundaries: `I push my boundaries by taking on projects that challenge me technically. For example, building a GenAI chatbot POC, designing a PySpark-based validation engine, and deploying APIs on AWS — all of these were outside my comfort zone initially, but I took them head-on. I constantly upskill myself, experiment with new tools, and set targets that force me to grow faster than the environment around me.`
-        };
-
-        let isListening = false;
-        let recognition = null;
-
-        // Initialize speech recognition
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('userInput').value = transcript;
-                sendMessage();
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                if (event.error === 'no-speech') {
-                    setStatus('No speech detected. Please try again.');
-                } else {
-                    setStatus('Error: ' + event.error);
-                }
-                stopListening();
-            };
-
-            recognition.onend = () => {
-                stopListening();
-            };
-        }
-
-        // Initialize speech synthesis
-        const synth = window.speechSynthesis;
-
-        function toggleVoice() {
-            if (isListening) {
-                stopListening();
-            } else {
-                startListening();
-            }
-        }
-
-        function startListening() {
-            if (!recognition) {
-                alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
-                return;
-            }
-
-            isListening = true;
-            document.getElementById('voiceBtn').classList.add('listening');
-            document.getElementById('voiceBtn').textContent = '🔴';
-            setStatus('🎤 Listening... Speak now!');
-            
-            try {
-                recognition.start();
-            } catch (error) {
-                console.error('Error starting recognition:', error);
-                stopListening();
-            }
-        }
-
-        function stopListening() {
-            isListening = false;
-            document.getElementById('voiceBtn').classList.remove('listening');
-            document.getElementById('voiceBtn').textContent = '🎤';
-            setStatus('');
-            if (recognition) {
-                try {
-                    recognition.stop();
-                } catch (error) {
-                    console.error('Error stopping recognition:', error);
-                }
-            }
-        }
-
-        function speak(text) {
-    if (synth.speaking) {
-        synth.cancel();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-    utterance.lang = 'en-IN';  // Indian English
-    
-    const voices = synth.getVoices();
-    
-    // 1. Try Microsoft Kalpana (Best Indian English female voice on Windows)
-    let voice = voices.find(v => v.name.includes('Microsoft Kalpana Desktop'));
-    
-    // 2. Try Microsoft Heera
-    if (!voice) {
-        voice = voices.find(v => v.name.includes('Microsoft Heera Desktop'));
-    }
-    
-    // 3. Try any Indian English female
-    if (!voice) {
-        voice = voices.find(v => 
-            (v.name.includes('India') || v.name.includes('IN') || v.lang.includes('IN')) &&
-            (v.name.includes('Female') || v.name.toLowerCase().includes('female'))
-        );
-    }
-    
-    // 4. Try Amazon Polly Raveena
-    if (!voice) {
-        voice = voices.find(v => v.name.includes('Raveena'));
-    }
-    
-    // 5. Fallback to any female voice
-    if (!voice) {
-        voice = voices.find(v => 
-            v.name.includes('Female') || 
-            v.name.includes('Samantha') || 
-            v.name.includes('Zira')
-        );
-    }
-    
-    // 6. Last resort: Any voice
-    if (!voice && voices.length > 0) {
-        voice = voices[0];
-    }
-    
-    if (voice) {
-        utterance.voice = voice;
-    }
-    
-    synth.speak(utterance);
+    "push_boundaries": "I push my boundaries by taking on projects that challenge me technically. For example, building a GenAI chatbot POC, designing a PySpark-based validation engine, and deploying APIs on AWS — all of these were outside my comfort zone initially, but I took them head-on. I constantly upskill myself, experiment with new tools, and set targets that force me to grow faster than the environment around me."
 }
 
-        function getResponse(question) {
-            const q = question.toLowerCase();
+QUICK_QUESTIONS = [
+    ("📖", "Life Story", "What should we know about your life story?"),
+    ("⚡", "Superpower", "What is your #1 superpower?"),
+    ("🌱", "Growth", "What are the top 3 areas you want to grow in?"),
+    ("🤔", "Misconception", "What misconception do coworkers have about you?"),
+    ("🚀", "Limits", "How do you push your boundaries and limits?"),
+    ("💻", "Skills", "What technical skills do you have?"),
+    ("🎯", "Projects", "Tell me about your recent projects"),
+    ("🎓", "Experience", "Tell me about your work experience"),
+    ("🤝", "Teamwork", "How do you collaborate with teams?"),
+    ("🔮", "Goals", "What are your future career goals?")
+]
 
-            if (q.includes('life story') || q.includes('about you') || q.includes('background') || 
-                q.includes('tell me about yourself') || q.includes('who are you')) {
-                return RESPONSES.life_story;
-            }
+# =============================================================================
+# HELPERS
+# =============================================================================
+
+def text_to_speech_indian(text: str) -> str:
+    tts = gTTS(text=text, lang="en", tld="co.in")
+    buf = io.BytesIO()
+    tts.write_to_fp(buf)
+    buf.seek(0)
+    audio_b64 = base64.b64encode(buf.read()).decode()
+    return f"""
+    <audio autoplay style="display:none">
+        <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mpeg">
+    </audio>
+    """
+
+def transcribe_audio(audio_data: dict) -> str:
+    """Convert audio to text using Groq Whisper API"""
+    try:
+        # Get the audio bytes from the recorder
+        audio_bytes = audio_data.get('bytes')
+        if not audio_bytes:
+            return None
             
-            if (q.includes('superpower') || q.includes('best at') || q.includes('excel') || 
-                q.includes('strength') || q.includes('good at') || q.includes('#1')) {
-                return RESPONSES.superpower;
-            }
-            
-            if (q.includes('grow') || q.includes('improve') || q.includes('develop') || 
-                q.includes('learning') || q.includes('growth area')) {
-                return RESPONSES.growth_areas;
-            }
-            
-            if (q.includes('misconception') || q.includes('misunderstand') || q.includes('wrong about') || 
-                q.includes('coworker')) {
-                return RESPONSES.misconception;
-            }
-            
-            if (q.includes('boundaries') || q.includes('limit') || q.includes('challenge') || 
-                q.includes('comfort zone') || q.includes('push')) {
-                return RESPONSES.push_boundaries;
-            }
-
-            return `That's an interesting question! I'm designed to answer specific questions about:
-• My life story and background
-• My #1 superpower
-• The top 3 areas I'd like to grow in
-• Misconceptions people have about me
-• How I push my boundaries and limits
-
-Feel free to click one of the suggestions above or ask me about any of these topics!`;
-        }
-
-        function askQuestion(question) {
-            document.getElementById('userInput').value = question;
-            sendMessage();
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-
-            if (!message) {
-                alert('Please enter a question first!');
-                return;
-            }
-
-            // Add user message to chat
-            addMessage(message, 'user');
-            input.value = '';
-
-            // Show typing indicator
-            showTyping();
-
-            // Simulate thinking time for more natural interaction
-            setTimeout(() => {
-                hideTyping();
-                const response = getResponse(message);
-                addMessage(response, 'bot');
-                speak(response);
-            }, 800);
-        }
-
-        function showTyping() {
-            const chatContainer = document.getElementById('chatContainer');
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot';
-            typingDiv.id = 'typing-indicator';
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'typing-indicator active';
-            contentDiv.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
-            
-            typingDiv.appendChild(contentDiv);
-            chatContainer.appendChild(typingDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function hideTyping() {
-            const typing = document.getElementById('typing-indicator');
-            if (typing) {
-                typing.remove();
-            }
-        }
-
-        function addMessage(text, sender) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = text;
-            
-            messageDiv.appendChild(contentDiv);
-            chatContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom smoothly
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function setStatus(text) {
-            document.getElementById('status').textContent = text;
-        }
-
-        // Load voices when they're available
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = () => {
-                synth.getVoices();
-            };
-        }
+        # Save to temporary file with .wav extension
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav', mode='wb') as tmp_file:
+            tmp_file.write(audio_bytes)
+            tmp_path = tmp_file.name
         
-        // Test that functions are working
-        console.log('Voice Bot initialized successfully!');
-    </script>
-</body>
-</html>"""
+        # Use Groq Whisper API for transcription
+        with open(tmp_path, 'rb') as audio_file:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/audio/transcriptions",
+                headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+                files={"file": ("audio.wav", audio_file, "audio/wav")},
+                data={"model": "whisper-large-v3"}
+            )
+        
+        # Clean up
+        os.unlink(tmp_path)
+        
+        if response.status_code == 200:
+            return response.json().get('text', '').strip()
+        else:
+            st.error(f"Transcription error: {response.status_code}")
+            return None
+        
+    except Exception as e:
+        st.error(f"Speech recognition error: {str(e)}")
+        return None
 
-def main():
-    """Streamlit app main function"""
-    st.set_page_config(
-        page_title="Personal Voice Bot - Interactive Demo",
-        page_icon="🎤",
-        layout="wide"
-    )
-    
-    # Display header
+def create_system_prompt() -> str:
+    return f"""
+You are Kusuma speaking in first person.
+
+Life Story:
+{PERSONAL_INFO['life_story']}
+
+Superpower:
+{PERSONAL_INFO['superpower']}
+
+Growth Areas:
+{PERSONAL_INFO['growth_areas']}
+
+Misconception:
+{PERSONAL_INFO['misconception']}
+
+Push Boundaries:
+{PERSONAL_INFO['push_boundaries']}
+
+Guidelines:
+- Friendly, professional
+- 2–5 sentences
+"""
+
+def get_groq_response(user_message: str, history: List[Dict]) -> str:
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    messages = [{"role": "system", "content": create_system_prompt()}]
+    messages.extend(history[-10:])
+    messages.append({"role": "user", "content": user_message})
+
+    payload = {
+        "model": MODEL_NAME,
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 400
+    }
+
+    response = requests.post(GROQ_API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+
+    st.error(f"Groq Error {response.status_code}: {response.text}")
+    return "I'm having trouble responding right now."
+
+# =============================================================================
+# UI
+# =============================================================================
+
+def inject_css():
     st.markdown("""
-    <div style="text-align: center; padding: 20px;">
-        <h1 style="color: #667eea;">🎤 Personal Voice Bot - Interactive Demo</h1>
+    <style>
+    .header {
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        padding: 20px;
+        border-radius: 16px;
+        color: white;
+        margin-bottom: 20px;
+    }
+    .quick-questions-wrapper {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px 4px;
+        white-space: nowrap;
+    }
+    .quick-questions-wrapper button {
+        white-space: nowrap !important;
+        border-radius: 20px !important;
+    }
+    #MainMenu, footer, .stDeployButton {
+        visibility: hidden;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+def render_header():
+    st.markdown("""
+    <div class="header">
+        <h1>🤖 AI-Powered Personal Voice Bot</h1>
+        <p>Tap the mic, ask questions, hear answers</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Display the HTML content
-    st.components.v1.html(HTML_CONTENT, height=800, scrolling=True)
-    
-    # Information section
-    with st.expander("ℹ️ How to use this application"):
-        st.markdown("""
-        ### Features:
-        - **Voice Input**: Click the microphone button to speak your questions
-        - **Text Input**: Type your questions in the input field
-        - **Quick Suggestions**: Click on any of the suggestion chips
-        - **Voice Output**: The bot will speak its responses
-        
-        ### Sample Questions:
-        - "What should we know about your life story?"
-        - "What is your #1 superpower?"
-        - "What are the top 3 areas you would like to grow in?"
-        - "What misconception do your coworkers have about you?"
-        - "How do you push your boundaries and limits?"
-        
-        ### Browser Requirements:
-        - Works best in Chrome, Edge, or Safari
-        - Requires microphone permission for voice input
-        """)
 
-if __name__ == '__main__':
+def render_quick_questions():
+    st.markdown("### 💡 Quick Questions")
+    st.markdown('<div class="quick-questions-wrapper">', unsafe_allow_html=True)
+
+    for i, (emoji, label, question) in enumerate(QUICK_QUESTIONS):
+        if st.button(f"{emoji} {label}", key=f"q_{i}"):
+            handle_user_input(question)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# =============================================================================
+# CHAT
+# =============================================================================
+
+def handle_user_input(user_input: str):
+    with st.chat_message("user", avatar="👤"):
+        st.markdown(user_input)
+
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    with st.chat_message("assistant", avatar="🤖"):
+        with st.spinner("Thinking..."):
+            reply = get_groq_response(user_input, st.session_state.messages)
+            st.markdown(reply)
+
+    st.session_state.messages.append({"role": "assistant", "content": reply})
+    st.session_state.pending_speech = reply
+    st.rerun()
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+def main():
+    st.set_page_config(page_title="Personal Voice Bot", page_icon="🤖", layout="wide")
+    inject_css()
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{
+            "role": "assistant",
+            "content": "Hi! I'm Your Personal AI Assistant, Tap the 🎙️ or choose 💡 to get started."
+        }]
+
+    if "pending_speech" not in st.session_state:
+        st.session_state.pending_speech = None
+
+    render_header()
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"], avatar="🤖" if msg["role"] == "assistant" else "👤"):
+                st.markdown(msg["content"])
+
+        if prompt := st.chat_input("Type your question..."):
+            handle_user_input(prompt)
+
+    with col2:
+        st.markdown("### 🎤 Ask a Question")
+
+        # Voice recorder
+        audio = mic_recorder(
+            start_prompt="🎙️ Start Recording",
+            stop_prompt="⏹️ Stop Recording",
+            just_once=True,
+            use_container_width=True,
+            key='recorder'
+        )
+
+        if audio:
+            st.info("🔄 Processing your voice...")
+            transcribed_text = transcribe_audio(audio)
+            
+            if transcribed_text:
+                st.success(f"📝 You said: {transcribed_text}")
+                handle_user_input(transcribed_text)
+
+        render_quick_questions()
+
+        if st.button("🗑️ Clear Chat", use_container_width=True):
+            st.session_state.messages = [{
+                "role": "assistant",
+                "content": "Chat cleared! Ask me anything."
+            }]
+            st.session_state.pending_speech = None
+            st.rerun()
+
+    if st.session_state.pending_speech:
+        st.components.v1.html(
+            text_to_speech_indian(st.session_state.pending_speech),
+            height=0
+        )
+        st.session_state.pending_speech = None
+
+if __name__ == "__main__":
+    main()
+
+############################################################
+#!/usr/bin/env python3
+"""
+Streamlit Voice Bot – AI-Powered Personal Assistant (Stable Final Version)
+"""
+
+import streamlit as st
+import requests
+import os
+import base64
+import io
+from gtts import gTTS
+from typing import Dict, List
+
+# =============================================================================
+# CONFIG
+# =============================================================================
+
+GROQ_API_KEY = "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"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL_NAME = "llama-3.3-70b-versatile"
+
+
+
+PERSONAL_INFO = {
+    "life_story": "Hi, I'm Kusuma, currently working as an Associate Data Scientist, passionate about building innovative solutions that make a real impact, where I build and deploy machine learning models, automate data pipelines, and work closely with cross-functional teams to translate business needs into data-driven solutions. I've also worked on GenAI projects/POC like chatbot development. I've been on an incredible journey of continuous learning, working on everything from applications to AI-powered tools. What drives me is the intersection of technology and human experience—creating solutions that are not just functional, but truly delightful to use.",
+
+    "superpower": "My superpower is taking complex problems and breaking them into clear, logical, and automated solutions. Whether it's building a GenAI chatbot, designing a data validation engine in PySpark, or optimizing deep learning models, I'm able to think end-to-end — from understanding the business goal to turning it into a working system.",
+
+    "growth_areas": "The top 3 areas I'd like to grow in are: First, I want to deepen my expertise in LLMOps and scalable deployment of GenAI systems. Second, I'm focusing on advanced deep learning—especially transformer architectures and multimodal models. And third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.",
+
+    "misconception": "People sometimes assume I'm quiet because I'm focused, but once I start working on a problem, I communicate very clearly and collaborate actively. I just like to understand the problem deeply before sharing solutions — and once I do, I'm very engaged and proactive.",
+
+    "push_boundaries": "I push my boundaries by taking on projects that challenge me technically. For example, building a GenAI chatbot POC, designing a PySpark-based validation engine, and deploying APIs on AWS — all of these were outside my comfort zone initially, but I took them head-on. I constantly upskill myself, experiment with new tools, and set targets that force me to grow faster than the environment around me."
+}
+
+QUICK_QUESTIONS = [
+    ("📖", "Life Story", "What should we know about your life story?"),
+    ("⚡", "Superpower", "What is your #1 superpower?"),
+    ("🌱", "Growth", "What are the top 3 areas you want to grow in?"),
+    ("🤔", "Misconception", "What misconception do coworkers have about you?"),
+    ("🚀", "Limits", "How do you push your boundaries and limits?"),
+    ("💻", "Skills", "What technical skills do you have?"),
+    ("🎯", "Projects", "Tell me about your recent projects"),
+    ("🎓", "Experience", "Tell me about your work experience"),
+    ("🤝", "Teamwork", "How do you collaborate with teams?"),
+    ("🔮", "Goals", "What are your future career goals?")
+]
+
+# =============================================================================
+# HELPERS
+# =============================================================================
+
+def text_to_speech_indian(text: str) -> str:
+    tts = gTTS(text=text, lang="en", tld="co.in")
+    buf = io.BytesIO()
+    tts.write_to_fp(buf)
+    buf.seek(0)
+    audio_b64 = base64.b64encode(buf.read()).decode()
+    return f"""
+    <audio autoplay style="display:none">
+        <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mpeg">
+    </audio>
+    """
+
+def create_system_prompt() -> str:
+    return f"""
+You are Kusuma speaking in first person.
+
+Life Story:
+{PERSONAL_INFO['life_story']}
+
+Superpower:
+{PERSONAL_INFO['superpower']}
+
+Growth Areas:
+{PERSONAL_INFO['growth_areas']}
+
+Misconception:
+{PERSONAL_INFO['misconception']}
+
+Push Boundaries:
+{PERSONAL_INFO['push_boundaries']}
+
+Guidelines:
+- Friendly, professional
+- 2–5 sentences
+"""
+
+def get_groq_response(user_message: str, history: List[Dict]) -> str:
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    messages = [{"role": "system", "content": create_system_prompt()}]
+    messages.extend(history[-10:])
+    messages.append({"role": "user", "content": user_message})
+
+    payload = {
+        "model": MODEL_NAME,
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 400
+    }
+
+    response = requests.post(GROQ_API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+
+    st.error(f"Groq Error {response.status_code}: {response.text}")
+    return "I'm having trouble responding right now."
+
+# =============================================================================
+# UI
+# =============================================================================
+
+def inject_css():
+    st.markdown("""
+    <style>
+    .header {
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        padding: 20px;
+        border-radius: 16px;
+        color: white;
+        margin-bottom: 20px;
+    }
+    .quick-questions-wrapper {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px 4px;
+        white-space: nowrap;
+    }
+    .quick-questions-wrapper button {
+        white-space: nowrap !important;
+        border-radius: 20px !important;
+    }
+    #MainMenu, footer, .stDeployButton {
+        visibility: hidden;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+def render_header():
+    st.markdown("""
+    <div class="header">
+        <h1>🤖 AI-Powered Personal Voice Bot</h1>
+        <p>Tap the mic, ask questions, hear answers</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def render_quick_questions():
+    st.markdown("### 💡 Quick Questions")
+    st.markdown('<div class="quick-questions-wrapper">', unsafe_allow_html=True)
+
+    for i, (emoji, label, question) in enumerate(QUICK_QUESTIONS):
+        if st.button(f"{emoji} {label}", key=f"q_{i}"):
+            st.session_state.listening = False
+            handle_user_input(question)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# =============================================================================
+# CHAT
+# =============================================================================
+
+def handle_user_input(user_input: str):
+    with st.chat_message("user", avatar="👤"):
+        st.markdown(user_input)
+
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    with st.chat_message("assistant", avatar="🤖"):
+        with st.spinner("Thinking..."):
+            reply = get_groq_response(user_input, st.session_state.messages)
+            st.markdown(reply)
+
+    st.session_state.messages.append({"role": "assistant", "content": reply})
+    st.session_state.pending_speech = reply
+    st.rerun()
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+def main():
+    st.set_page_config(page_title="Personal Voice Bot", page_icon="🤖", layout="wide")
+    inject_css()
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{
+            "role": "assistant",
+            "content": "Hi! I'm Your Personal AI Assistant, Tap the 🎙️ or 💡 to get started."
+        }]
+
+    if "pending_speech" not in st.session_state:
+        st.session_state.pending_speech = None
+
+    if "listening" not in st.session_state:
+        st.session_state.listening = False
+
+    render_header()
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"], avatar="🤖" if msg["role"] == "assistant" else "👤"):
+                st.markdown(msg["content"])
+
+        if prompt := st.chat_input("Type your question..."):
+            st.session_state.listening = False
+            handle_user_input(prompt)
+
+    with col2:
+        st.markdown("### 🎤 Ask a Question")
+
+        if st.button("🎙️", use_container_width=True):
+            st.session_state.listening = True
+
+        if st.session_state.listening:
+            st.info("🎧 Listening...")
+
+        render_quick_questions()
+
+        if st.button("🗑️ Clear Chat", use_container_width=True):
+            st.session_state.messages = [{
+                "role": "assistant",
+                "content": "Chat cleared! Ask me anything."
+            }]
+            st.session_state.pending_speech = None
+            st.session_state.listening = False
+            st.rerun()
+
+    if st.session_state.pending_speech:
+        st.components.v1.html(
+            text_to_speech_indian(st.session_state.pending_speech),
+            height=0
+        )
+        st.session_state.pending_speech = None
+
+if __name__ == "__main__":
     main()
