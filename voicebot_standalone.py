@@ -30,7 +30,7 @@ PERSONAL_INFO = {
 
     "superpower": "My superpower is taking complex problems and breaking them into clear, logical, and automated solutions. Whether it's building a GenAI chatbot, designing a data validation engine in PySpark, or optimizing deep learning models, I'm able to think end-to-end — from understanding the business goal to turning it into a working system.",
 
-    "growth_areas": "The top 3 areas I'd like to grow in are: First, I want to deepen my expertise in LLMOps and scalable deployment of GenAI systems. Second, I'm focusing on advanced deep learning—especially transformer architectures and multimodal models. And third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.",
+    "growth_areas": "The top 3 areas I'd like to grow in are: First, I want to deepen my expertise in and scalable deployment of GenAI systems. Second, I'm focusing on advanced deep learning—especially transformer architectures and multimodal models. And third, I want to grow my leadership and mentoring abilities so I can guide teams on AI/ML projects.",
 
     "misconception": "People sometimes assume I'm quiet because I'm focused, but once I start working on a problem, I communicate very clearly and collaborate actively. I just like to understand the problem deeply before sharing solutions — and once I do, I'm very engaged and proactive.",
 
@@ -40,9 +40,9 @@ PERSONAL_INFO = {
 QUICK_QUESTIONS = [
     ("📖", "Life Story", "What should we know about your life story?"),
     ("⚡", "Superpower", "What is your #1 superpower?"),
-    ("🌱", "Growth", "What are the top 3 areas you want to grow in?"),
+    ("🌱", "Growth Areas", "What are the top 3 areas you want to grow in?"),
     ("🤔", "Misconception", "What misconception do coworkers have about you?"),
-    ("🚀", "Limits", "How do you push your boundaries and limits?"),
+    ("🚀", "Push Boundaries", "How do you push your boundaries and limits?"),
     ("💻", "Skills", "What technical skills do you have?"),
     ("🎯", "Projects", "Tell me about your recent projects"),
     ("🎓", "Experience", "Tell me about your work experience"),
@@ -245,7 +245,7 @@ def main():
             with st.chat_message(msg["role"], avatar="🤖" if msg["role"] == "assistant" else "👤"):
                 st.markdown(msg["content"])
 
-        if prompt := st.chat_input("Type your question..."):
+        if prompt := st.chat_input("Type your question...", key="main_chat_input"):
             handle_user_input(prompt)
 
     with col2:
@@ -287,5 +287,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
