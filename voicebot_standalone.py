@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 
 """
-Dynamic Streamlit Voice Bot – AI-Powered Personal Assistant 
+Streamlit Voice Bot – AI-Powered Personal Assistant 
 """
 
 import streamlit as st
@@ -264,7 +264,7 @@ def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = [{
             "role": "assistant",
-            "content": "Hello! I'm Your Personal AI Assistant ,Tap the 🎙️ or 💡 to get started."
+            "content": "Hello! I'm Your Personal AI Assistant,  Tap the 🎙️ or 💡 to get started."
         }]
     
     if "pending_speech" not in st.session_state:
@@ -356,3 +356,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
