@@ -216,11 +216,26 @@ def inject_css():
 
 def render_header():
     st.markdown("""
+    <style>
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;       /* horizontal center */
+            justify-content: center;   /* vertical center (inside block) */
+            text-align: center;
+            padding: 20px 0;
+        }
+        .header h1 {
+            margin-bottom: 6px;
+        }
+    </style>
+
     <div class="header">
-        <h1>🤖 AI Personal Voice Bot </h1>
+        <h1>🤖 AI Personal Voice Bot</h1>
         <p>Hi, I'm Your AI-Powered Personal Assistant!</p>
     </div>
     """, unsafe_allow_html=True)
+
 
 def render_quick_questions():
     st.markdown("### 💡 Quick Questions")
@@ -356,4 +371,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
