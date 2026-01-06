@@ -1,8 +1,8 @@
-
+############## FINAL WORKING VERSION #####################
 #!/usr/bin/env python3
 
 """
-Streamlit Voice Bot – AI-Powered Personal Assistant 
+Dynamic Streamlit Voice Bot – AI-Powered Personal Assistant 
 """
 
 import streamlit as st
@@ -236,6 +236,13 @@ def render_header():
     </div>
     """, unsafe_allow_html=True)
 
+# def render_header():
+#     st.markdown("""
+#     <div class="header">
+#         <h1>🤖 AI Personal Voice Bot </h1>
+#         <p>Hi, I'm Your AI-Powered Personal Assistant!</p>
+#     </div>
+#     """, unsafe_allow_html=True)
 
 def render_quick_questions():
     st.markdown("### 💡 Quick Questions")
@@ -279,7 +286,7 @@ def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = [{
             "role": "assistant",
-            "content": "Hello! I'm Your Personal AI Assistant,  Tap the 🎙️ or 💡 to get started."
+            "content": "Hello! I'm Your Personal AI Assistant ,Tap the 🎙️ or 💡 to get started."
         }]
     
     if "pending_speech" not in st.session_state:
@@ -371,7 +378,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
