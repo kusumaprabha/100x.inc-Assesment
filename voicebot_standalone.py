@@ -19,7 +19,7 @@ import tempfile
 # CONFIG
 # =============================================================================
 
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 MODEL_NAME = "llama-3.3-70b-versatile"
 
@@ -378,3 +378,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
