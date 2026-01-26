@@ -4,5 +4,7 @@ SpeechRecognition
 streamlit-mic-recorder
 gtts
 flask
+groq
+python-dotenv
 
 
