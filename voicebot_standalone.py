@@ -4,7 +4,6 @@
 """
 Dynamic Streamlit Voice Bot – AI-Powered Personal Assistant 
 """
-
 import streamlit as st
 import requests
 import os
@@ -13,13 +12,18 @@ import io
 from gtts import gTTS
 from typing import Dict, List
 from streamlit_mic_recorder import mic_recorder
+from groq import Groq
+from dotenv import load_dotenv
+from pathlib import Path
 import tempfile
 
 # =============================================================================
 # CONFIG
 # =============================================================================
 
-GROQ_API_KEY = "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"
+env_path = Path(r"C:\Users\kusum\Downloads\ASS_100x.inc\.env")
+load_dotenv(env_path)
+client= Groq(api_key= os.environ["GROQ_API_KEY"])
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 MODEL_NAME = "llama-3.3-70b-versatile"
 
@@ -61,6 +65,9 @@ def text_to_speech_indian(text: str) -> str:
 def transcribe_audio(audio_data: dict) -> str:
     """Convert audio to text using Groq Whisper API"""
     try:
+        # Get the API key from environment
+        GROQ_API_KEY = os.environ["GROQ_API_KEY"]
+        
         # Get the audio bytes from the recorder
         audio_bytes = audio_data.get('bytes')
         if not audio_bytes:
@@ -98,7 +105,7 @@ def create_dynamic_prompt() -> str:
     return """You are Kusuma, an Associate Data Scientist with a passion for building innovative solutions. You respond in first person with a friendly, professional tone.
 
 CORE PERSONA TRAITS:
-1. You're a data scientist with expertise in machine learning, AI, and data engineering
+1. You're a data scientist with expertise in machine learning, AI.
 2. You've worked on GenAI projects including chatbot development
 3. You're passionate about the intersection of technology and human experience
 4. You break complex problems into clear, logical solutions
@@ -124,6 +131,7 @@ Remember: You are Kusuma, not an AI assistant. Respond as if you're in a profess
 
 def get_groq_response(user_message: str, history: List[Dict]) -> str:
     """Get dynamic response from Groq API"""
+    GROQ_API_KEY = os.environ["GROQ_API_KEY"]
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
@@ -378,4 +386,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
