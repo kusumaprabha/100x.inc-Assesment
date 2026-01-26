@@ -18,12 +18,43 @@ from pathlib import Path
 import tempfile
 
 # =============================================================================
-# CONFIG
+# CONFIG - Works both locally (.env) and on Streamlit Cloud (secrets)
 # =============================================================================
 
-env_path = Path(r".env")
-load_dotenv(env_path)
-client= Groq(api_key= os.environ["GROQ_API_KEY"])
+# First try to get API key from Streamlit Secrets (for deployment)
+try:
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+    print("✓ Loaded API key from Streamlit Secrets")
+except:
+    # Fallback: Try to load from .env file (for local development)
+    try:
+        env_path = Path(".env")
+        load_dotenv(env_path)
+        GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+        if GROQ_API_KEY:
+            print("✓ Loaded API key from .env file")
+        else:
+            GROQ_API_KEY = None
+            st.warning("GROQ_API_KEY not found in .env file")
+    except Exception as e:
+        GROQ_API_KEY = None
+        st.error(f"Error loading API key: {e}")
+
+# Initialize Groq client if API key is available
+if GROQ_API_KEY:
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+        print("✓ Groq client initialized successfully")
+    except Exception as e:
+        st.error(f"Failed to initialize Groq client: {str(e)}")
+        client = None
+else:
+    st.error("GROQ_API_KEY not found!")
+    st.info("Please add your API key:")
+    st.info("1. **Local**: Create `.env` file with GROQ_API_KEY=your_key")
+    st.info("2. **Streamlit Cloud**: Add GROQ_API_KEY to app secrets")
+    client = None
+
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 MODEL_NAME = "llama-3.3-70b-versatile"
 
@@ -65,8 +96,10 @@ def text_to_speech_indian(text: str) -> str:
 def transcribe_audio(audio_data: dict) -> str:
     """Convert audio to text using Groq Whisper API"""
     try:
-        # Get the API key from environment
-        GROQ_API_KEY = os.environ["GROQ_API_KEY"]
+        # Use the global GROQ_API_KEY variable (already loaded from secrets/.env)
+        if not GROQ_API_KEY:
+            st.error("API key not available for transcription")
+            return None
         
         # Get the audio bytes from the recorder
         audio_bytes = audio_data.get('bytes')
@@ -131,7 +164,9 @@ Remember: You are Kusuma, not an AI assistant. Respond as if you're in a profess
 
 def get_groq_response(user_message: str, history: List[Dict]) -> str:
     """Get dynamic response from Groq API"""
-    GROQ_API_KEY = os.environ["GROQ_API_KEY"]
+    if not GROQ_API_KEY:
+        return "API key not configured. Please check your setup."
+    
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
@@ -386,4 +421,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
