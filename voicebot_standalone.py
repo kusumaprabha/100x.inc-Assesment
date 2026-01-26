@@ -21,7 +21,7 @@ import tempfile
 # CONFIG
 # =============================================================================
 
-env_path = Path(r"C:\Users\kusum\Downloads\ASS_100x.inc\.env")
+env_path = Path(r".env")
 load_dotenv(env_path)
 client= Groq(api_key= os.environ["GROQ_API_KEY"])
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -386,3 +386,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
